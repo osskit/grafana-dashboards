@@ -1,0 +1,37 @@
+  name: dashboard
+  on:
+    workflow_dispatch:
+      inputs:
+        host:
+          description: grafana host url
+          required: true
+        serviceName:
+          description: name of the service to create dashboards for
+          required: true
+        type:
+          description: service type
+          required: true
+          options:
+            - worker
+            - api
+  jobs:
+    run:
+      name: Create Grafana Dashboard
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - uses: actions/setup-node@v2
+          with:
+            node-version: '18.x'
+        - name: find and replace
+          uses: jacobtomlinson/gha-find-replace@v2
+          with:
+            find: "SERVICE_NAME"
+            replace: ${{github.event.inputs.serviceName}}
+            regex: false
+        - run: yarn
+        - run: yarn start
+          env:
+            TYPE: ${{github.event.inputs.type}}
+            GRAFANA_DASHBOARD_TOKEN: ${{secrets.GRAFANA_DASHBOARD_TOKEN}}
+            GRAFANA_HOST: ${{github.event.inputs.host}}
